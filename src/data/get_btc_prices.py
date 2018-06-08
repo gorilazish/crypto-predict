@@ -23,11 +23,11 @@ def timestamp_to_date(timestamp):
 # ---------------------
 
 current_time = int(round(time.time()))
-exchange = ccxt.binance()
-symbol = 'BTC/USDT'
+exchange = ccxt.bitfinex2()
+symbol = 'BTC/USD'
 from_timestamp = date_to_unix(string_to_date(sys.argv[1] if len(sys.argv) > 1 else '01/01/2014'))
 to_timestamp = date_to_unix(string_to_date(sys.argv[2])) if len(sys.argv) > 2 else current_time
-output_file = '../../data/raw/ohlcv.csv'
+output_file = 'data/raw/ohlcv.csv'
 timeframe = '1m'
 batch_limit = 1000
 
@@ -44,11 +44,12 @@ def get_historical_prices():
 
   for x in range(count):
     print('#', x, ' | ', x / count * 100, '%')
-    print('Batch from ' + timestamp_to_date(seconds_left) + '\n')
+    print('Batch from ' + timestamp_to_date(seconds_left))
     batch = exchange.fetch_ohlcv(symbol, timeframe, seconds_left * 1000, batch_limit)
     prices = prices + batch
-    seconds_left += 1000 * 60
-    time.sleep(1)
+    print('Received date: ' + timestamp_to_date(batch[0][0] / 1000) + '\n')
+    seconds_left += batch_limit * 60
+    time.sleep(3)
   
   return numpy.array(prices)
 
