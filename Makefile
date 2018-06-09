@@ -1,6 +1,6 @@
 FROM = '01/01/2018'
 
-all: preprocess
+all: fetchBTC preprocess
 
 clean:
 	#rm -f data/interim/*.csv
