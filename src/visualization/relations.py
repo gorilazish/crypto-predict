@@ -4,8 +4,7 @@ import numpy as np
 
 # Load dataset
 
-data_filename = '../assets/15min_prices_tweets_april.csv'
-# data_filename = '../assets/60min_final.csv'
+data_filename = 'data/interim/tweets_aggregated.csv'
 print('Loading prep file: ', data_filename)
 df = pd.read_csv(data_filename)
 print('File has been loaded \n')

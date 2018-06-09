@@ -1,10 +1,11 @@
 import pandas as pd
 import regex as re
 
-input_filename = "../assets/data_clean.csv"
-output_filename = "../outputs/data_expanded.csv"
+input_filename = "data/interim/tweets_clean.csv"
+output_filename = "data/interim/tweets_expanded.csv"
 
-data = pd.read_csv(input_filename, engine="python")
+data = pd.read_csv(input_filename, engine="python", index_col=0)
+data = data.drop(['tweet'], 1)
 data['followers'] = data['followers_count']
 data['followers_compound'] = data['followers'] * data['compound']
 data['followers_positive'] = data['followers'] * data['positive']
@@ -19,4 +20,3 @@ data['neutral_mean'] = data['neutral']
 data['negative_sum'] = data['negative']
 data['negative_mean'] = data['negative']
 data.to_csv(output_filename, encoding='utf-8', header=True, index=False)
-

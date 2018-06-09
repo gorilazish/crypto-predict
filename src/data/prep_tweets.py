@@ -1,9 +1,10 @@
 import pandas as pd
 import re
+import os
 from vaderSentiment import vaderSentiment
 
-input_filename = "../assets/data.csv"
-output_filename = "../output/data_clean.csv"
+input_filename = "data/raw/tweets.csv"
+output_filename = "data/interim/tweets_clean.csv"
 columns = ['datetime','tweet','followers_count', 'compound', 'positive', 'neutral', 'negative']
 
 counter = 0
@@ -44,18 +45,22 @@ def sentiment(data):
     data['compound'] = pd.Series(compound)
     data['positive'] = pd.Series(positive)
     data['neutral'] = pd.Series(neutral)
-    data['negative'] = pd.Series(negative)       
+    data['negative'] = pd.Series(negative)
     return data
 
 def save(data):
     global counter
-    data[columns].to_csv('outputs/' + output_filename, mode='a', encoding='utf-8-sig', header=True, index=False)
+    # if file does not exist write header
+    if not os.path.isfile(output_filename):
+       data[columns].to_csv(output_filename,  header='column_names', index=False)
+    else: # else it exists so append without writing the header
+       data[columns].to_csv(output_filename, mode='a', header=False, index=False)
     print('processing:{} '.format(str(counter)))
     counter += chunksize
-    
+
 
 def process(data):
-    tweets = []  
+    tweets = []
     for t in data['tweet']:
         tweets.append(clean_tweet_text(str(t)))
     data['tweet'] = pd.Series(tweets)
@@ -63,7 +68,5 @@ def process(data):
     data = sentiment(data)
     save(data)
 
-df = pd.read_csv(input_filename, engine='python')
-process(df)
-
-
+for chunk in pd.read_csv(input_filename, chunksize=chunksize, engine='python', encoding='utf-8-sig'):
+    process(chunk)

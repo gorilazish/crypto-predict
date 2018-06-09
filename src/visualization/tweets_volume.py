@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.dates as mdates
 
 # Plot Tweet count volume over period
-data1_filename = '../assets/data_expanded.csv'
+data1_filename = 'data/interim/tweets_aggregated.csv'
 print('Loading prep file: ', data1_filename)
 df = pd.read_csv(data1_filename, usecols=['datetime'])
 print('File has been loaded \n')
