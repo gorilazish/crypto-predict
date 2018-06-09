@@ -7,10 +7,10 @@ clean:
 
 twitter:
 	# takes around 30mins
-	#python3 src/data/prep_tweets.py
+	python3 src/data/prep_tweets.py
 	# takes around 5mins
 	#python3 src/features/prepare_cols.py
-	python3 src/features/aggregate_tweets2.py
+	#python3 src/features/aggregate_tweets2.py
 
 ohlcv:
 	#python src/data/get_btc_prices.py $(FROM)
