@@ -1,6 +1,6 @@
 FROM = '01/01/2018'
 
-all: ohlcv
+all: preprocess
 
 clean:
 	#rm -f data/interim/*.csv
