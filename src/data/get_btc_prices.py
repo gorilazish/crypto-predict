@@ -52,16 +52,19 @@ def get_historical_prices():
       print('#', x, ' | ', round(x / count * 100, 2), '%')
       print('Batch from ' + timestamp_to_date(seconds_left))
       batch = exchange.fetch_ohlcv(symbol, timeframe, seconds_left * 1000, batch_limit)
+
+    except Exception as ex:
+      print(ex)
+      print('WAITING PENALTY\n\n\n')
+      time.sleep(120)
+      batch = exchange.fetch_ohlcv(symbol, timeframe, seconds_left * 1000, batch_limit)
+
+    finally:
       prices = prices + batch
       print('Received from date: ' + timestamp_to_date(batch[0][0] / 1000))
       print('Received to date: ' + timestamp_to_date(batch[-1][0] / 1000) + '\n')
       seconds_left += batch_limit * 60
       time.sleep(1)
-    except Exception as ex:
-      print(ex)
-      print('WAITING PENALTY\n\n\n')
-      count += 1
-      time.sleep(120)
   
   return np.array(prices)
 
