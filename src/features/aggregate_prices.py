@@ -1,13 +1,12 @@
 import pandas as pd
 import datetime
 import numpy as np
-ROOT_DIR = '../../'
 
 print('Loading OHLCV data')
-ohlcv_filename = ROOT_DIR + 'data/interim/ohlcv.csv'
-ohlcv_cols = ['datetime', 'open', 'high', 'low', 'close', 'volume']
-df = pd.read_csv(ohlcv_filename, usecols=ohlcv_cols, index_col=0)
+ohlcv_filename = 'data/interim/ohlcv.csv'
+df = pd.read_csv(ohlcv_filename, engine="python", index_col=0)
 print('OHLCV data was loaded\n')
+print(df.head())
 
 def agg_to_timeframe():
   df.index = pd.DatetimeIndex(df.index)

@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.dates as mdates
 
 # Plot Tweet polarity distribution over period
-data_filename = '../assets/data_expanded.csv'
+data_filename = 'data/interim/tweets_aggregated.csv'
 print('\nLoading prep file: ', data_filename)
 df = pd.read_csv(data_filename)
 print('File has been loaded \n')

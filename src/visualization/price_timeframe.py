@@ -5,7 +5,7 @@ import matplotlib.dates as mdates
 
 # Load dataset
 
-data_filename = '../assets/btc_prices_april.csv'
+data_filename = 'data/interim/tweets_aggregated.csv'
 print('Loading prep file: ', data_filename)
 df = pd.read_csv(data_filename, usecols=['timestamp', 'close'])
 print('File has been loaded \n')

@@ -50,7 +50,7 @@ def get_historical_prices():
     print('Received date: ' + timestamp_to_date(batch[0][0] / 1000) + '\n')
     seconds_left += batch_limit * 60
     time.sleep(3)
-  
+
   return numpy.array(prices)
 
 historical_prices = get_historical_prices()
