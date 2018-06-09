@@ -35,20 +35,19 @@ def sentiment(data):
     neutral = []
     negative = []
     for t in data['tweet']:
-        t = str(t)
-        vs = analyzer.polarity_scores(t)
+        vs = analyzer.polarity_scores(str(t))
         compound.append(vs['compound'])
         positive.append(vs['pos'])
         neutral.append(vs['neu'])
         negative.append(vs['neg'])
-
-    data['compound'] = pd.Series(compound)
-    data['positive'] = pd.Series(positive)
-    data['neutral'] = pd.Series(neutral)
-    data['negative'] = pd.Series(negative)
+    data['compound'] = compound
+    data['positive'] = positive
+    data['neutral'] = neutral
+    data['negative'] = negative
     return data
 
 def save(data):
+    print(data.head())
     global counter
     # if file does not exist write header
     if not os.path.isfile(output_filename):
@@ -58,15 +57,17 @@ def save(data):
     print('processing:{} '.format(str(counter)))
     counter += chunksize
 
-
 def process(data):
     tweets = []
     for t in data['tweet']:
         tweets.append(clean_tweet_text(str(t)))
-    data['tweet'] = pd.Series(tweets)
+    data.drop(['tweet'], axis = 1, inplace = True)
+    data['tweet'] = tweets
     data['datetime'] = data['date'] + " " + data['time']
+    return data
+
+
+for chunk in pd.read_csv(input_filename, chunksize=chunksize, encoding='utf-8-sig', low_memory=False):
+    data = process(chunk)
     data = sentiment(data)
     save(data)
-
-for chunk in pd.read_csv(input_filename, chunksize=chunksize, engine='python', encoding='utf-8-sig'):
-    process(chunk)
