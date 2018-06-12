@@ -14,6 +14,7 @@ df[['close', 'tweet_count']] = scaler.fit_transform(df[['close', 'tweet_count']]
 
 fig, ax = plt.subplots()
 df.index = pd.DatetimeIndex(df.index)
+
 # Selected period of time
 start_date = '27/04/2018 00:00:00'
 end_date = '30/04/2018 00:00:00'

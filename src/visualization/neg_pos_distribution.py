@@ -19,6 +19,7 @@ positive = df.loc[df[feature] > 0].resample(timeframe).agg({'datetime': 'last', 
 negative = df.loc[df[feature] < 0].resample(timeframe).agg({'datetime': 'last', feature: 'mean'})
 negative[feature] = negative[feature].abs()
 
+fig = plt.figure()
 ax1 = fig.add_subplot(111)
 ax1.scatter(positive.index, positive[feature], c='g', alpha=0.4)
 ax1.scatter(positive.index, negative[feature], c='r', alpha=0.4)
