@@ -1,27 +1,39 @@
 FROM = '01/01/2018'
 
-all: fetchBTC preprocess
+all: twitter ohlcv merge graphs
 
 clean:
 	#rm -f data/interim/*.csv
+	#rm -f data/external/*.csv
+	#rm -f data/processed/*.csv
+	#rm -f data/raw/*.csv
 
 twitter:
+	# RUN ONLY ONCE
 	# takes around 30mins
-	python3 src/data/prep_tweets.py
+	# python3 src/data/prep_tweets.py
 	# takes around 5mins
-	#python3 src/features/prepare_cols.py
-	#python3 src/features/aggregate_tweets2.py
+	# python3 src/features/prepare_cols.py
+
+	# RUN FOR EVERY TIMEFRAME
+	python3 src/features/aggregate_tweets.py
+	tree data
 
 ohlcv:
+	# RUN ONLY ONCE
 	#python src/data/get_btc_prices.py $(FROM)
-	python src/data/add_header.py
-	python src/data/timestamp_to_datetime.py
+	# python src/data/add_header.py
+	# python src/data/timestamp_to_datetime.py
+
+	# RUN FOR EVERY TIMEFRAME
 	python src/features/aggregate_prices.py
-	#tree data
+	tree data
+
+merge:
+	python src/features/merge.py
 
 graphs:
 	python src/visualization/describe_data.py
-	python src/visualization/neg_pos_distribution.py
-	python src/visualization/price_timeframe.py
-	python src/visualization/relations.py
-	python src/visualization/tweets_volume.py
+	python src/visualization/price_tweet_volume.py
+	python src/visualization/explore.py
+

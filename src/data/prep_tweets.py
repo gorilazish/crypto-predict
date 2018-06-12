@@ -1,20 +1,23 @@
 import pandas as pd
 import re
 import os
+import math
 from vaderSentiment import vaderSentiment
 
-input_filename = "data/raw/tweets.csv"
-output_filename = "data/interim/tweets_clean.csv"
+input_filename = 'data/raw/tweets.csv'
+output_filename = 'data/interim/tweets_clean.csv'
 columns = ['datetime','tweet','followers_count', 'compound', 'positive', 'neutral', 'negative']
 
 counter = 0
 chunksize = 10000
+total_rows = sum(1 for row in open(input_filename, 'r'))
+print('Total chunks - ' + str(total_rows / chunksize))
 
 def clean_tweet_text(text):
     # 1. Lower case
     processed_text = text.lower()
     # 2. Remove mentions
-    processed_text = re.sub(r"@[\w\S]+", '', processed_text)
+    processed_text = re.sub(r'@[\w\S]+', '', processed_text)
     # 3. Remove hashtag symbols
     processed_text = re.sub('#', '', processed_text)
     # 4. Remove 'rt' from retweeted tweets
@@ -47,7 +50,6 @@ def sentiment(data):
     return data
 
 def save(data):
-    print(data.head())
     global counter
     # if file does not exist write header
     if not os.path.isfile(output_filename):
@@ -55,6 +57,7 @@ def save(data):
     else: # else it exists so append without writing the header
        data[columns].to_csv(output_filename, mode='a', header=False, index=False)
     print('processing:{} '.format(str(counter)))
+    print(round((counter / total_rows) * 100, 2), '%\n')
     counter += chunksize
 
 def process(data):
@@ -63,11 +66,11 @@ def process(data):
         tweets.append(clean_tweet_text(str(t)))
     data.drop(['tweet'], axis = 1, inplace = True)
     data['tweet'] = tweets
-    data['datetime'] = data['date'] + " " + data['time']
+    data['datetime'] = data['date'] + ' ' + data['time']
     return data
 
 
-for chunk in pd.read_csv(input_filename, chunksize=chunksize, encoding='utf-8-sig', low_memory=False):
+for chunk in pd.read_csv(input_filename, engine='python', chunksize=chunksize, encoding='utf-8-sig'):
     data = process(chunk)
     data = sentiment(data)
     save(data)

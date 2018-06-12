@@ -1,13 +1,26 @@
 import pandas as pd
-import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import numpy as np
-import seaborn as sns
 import os
 
-input_filename = '../../data/processed/aggregated.csv'
-output_filename = '../../reports/exploration.png'
-df = pd.read_csv(input_filename, index_col=0)
-print(df.head())
+timeframe = '15min' # todo: make timeframe global variable
 
-plot = sns.pairplot(df, vars=['compound', 'positive', 'negative', 'volume'], hue='price_change')
-plot.savefig(output_filename)
+input_filename = 'data/processed/tweets_prices_'+ timeframe +'.csv'
+df = pd.read_csv(input_filename, index_col=0)
+
+# Scatter feature relation to target label
+features = ['followers_positive', 'compound_sum', 'tweet_count']
+target = 'price_change'
+
+for feature in features:
+  plt.scatter(x=df[feature], y=df[target], alpha=0.4)
+  plt.xlabel(feature)
+  plt.ylabel(target)
+  plt.savefig('reports/'+ feature +'-'+ target +'_'+ timeframe +'.png')
+  plt.clf()
+
+
+
+
+
