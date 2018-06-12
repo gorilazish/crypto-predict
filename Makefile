@@ -33,7 +33,7 @@ merge:
 	python src/features/merge.py
 
 graphs:
-	python src/visualization/describe_data.py
+	# python src/visualization/describe_data.py
 	python src/visualization/price_tweet_volume.py
-	python src/visualization/explore.py
+	# python src/visualization/explore.py
 
