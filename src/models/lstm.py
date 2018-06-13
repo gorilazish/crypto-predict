@@ -18,8 +18,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.pipeline import Pipeline
 
-# Create the outputs folder - save any outputs you want managed by AzureML here
-os.makedirs('./outputs', exist_ok=True)
+timeframe = '60min' # todo: define global config
 
 def parse(x):
 	return datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
@@ -58,48 +57,38 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	return agg
 
 # Load dataset
-# data_filename = 'assets/60min_final.csv'
-data_filename = 'assets/15min_prices_tweets_april.csv'
-print('\nLoading prep file: ', data_filename)
-df = pd.read_csv(data_filename, index_col=0)
+input_filename = 'data/processed/tweets_prices_15min.csv'
+df = pd.read_csv(input_filename, usecols=[2, 3, 5, 6, 9, 13, 14, 18, 19])
 print('Data has been loaded\n')
-df.index = pd.DatetimeIndex(df.index)
+df['close_price'] = df['close']
+df.drop(['close'], axis=1, inplace=True)
+print(df.head())
 values = df.values
-
-# specify columns to plot
-# groups = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-# i = 1
-# # plot each column
-# plt.figure()
-# for group in groups:
-# 	plt.subplot(len(groups), 1, i)
-# 	plt.plot(values[:, group])
-# 	plt.title(df.columns[group], y=0.5, loc='right')
-# 	i += 1
-# plt.show()
 
 # Prepare data for time-series
 values = values.astype('float32')
 scaler = MinMaxScaler(feature_range=(0, 1))
 scaled = scaler.fit_transform(values)
-reframed = series_to_supervised(scaled, 1, 1)
-reframed.drop(reframed.columns[[16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]], axis=1, inplace=True)
+steps = 3
+n_features = 9
+n_observ = steps * n_features
+reframed = series_to_supervised(scaled, steps, 1)
+# reframed.drop(reframed.columns[[8, 9, 10, 11, 12, 13, 14]], axis=1, inplace=True)
 
 # Split into test and train, and input and output
 values = reframed.values
-X, Y = values[:, :-1], values[:, -1]
+X, Y = values[:, :n_observ], values[:, -1]
 x_shape, y_shape = X.shape
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=False)
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.3, shuffle=False)
 
 # reshape input to be 3D [samples, timesteps, features]
-X_train = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
-X_test = X_test.reshape((X_test.shape[0], 1, X_test.shape[1]))
+X_train = X_train.reshape((X_train.shape[0], steps, n_features))
+X_test = X_test.reshape((X_test.shape[0], steps, n_features))
 print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
 
 # define base model
 def baseline_model():
   neurons = 50
-
   # design network
   model = Sequential()
   model.add(LSTM(neurons, input_shape=(X_train.shape[1], X_train.shape[2])))
@@ -107,35 +96,39 @@ def baseline_model():
   model.compile(loss='mae', optimizer='adam')
   return model
 
-lstm_model = baseline_model()
 # fit network
-history = lstm_model.fit(X_train, y_train, epochs=10000, batch_size=72, validation_data=(X_test, y_test), verbose=2, shuffle=False)
+lstm_model = baseline_model()
+history = lstm_model.fit(X_train, y_train, epochs=500, batch_size=72, validation_data=(X_test, y_test), verbose=2, shuffle=False)
 
 # plot history
 plt.plot(history.history['loss'], label='train')
 plt.plot(history.history['val_loss'], label='test')
+plt.ylabel('Loss')
+plt.xlabel('Epochs')
 plt.legend()
-# plt.show()
+plt.savefig('reports/train_test_loss_' + timeframe +'.png')
+plt.show()
 plt.clf()
 
 predictions = lstm_model.predict(X_test)
-X_test = X_test.reshape((X_test.shape[0], X_test.shape[2]))
+X_test = X_test.reshape((X_test.shape[0], steps * n_features))
 # invert scaling for forecast
-inv_pred = np.concatenate((X_test[:, :-1], predictions), axis=1)
+inv_pred = np.concatenate((X_test[:, -n_features:-1], predictions), axis=1)
 inv_pred = scaler.inverse_transform(inv_pred)
-inv_pred = inv_pred[:,-1:]
+inv_pred = inv_pred[:, -1]
 # invert scaling for actual
 y_test = y_test.reshape((len(y_test), 1))
-inv_y = np.concatenate((X_test[:, :-1], y_test), axis=1)
+inv_y = np.concatenate((X_test[:, -n_features:-1], y_test), axis=1)
 inv_y = scaler.inverse_transform(inv_y)
-inv_y = inv_y[:,-1:]
+inv_y = inv_y[:, -1]
 
 # calculate RMSE
 rmse = sqrt(mean_squared_error(inv_y, inv_pred))
 print('Test RMSE: %.3f' % rmse)
-plt.plot(inv_pred, c='orange', label='Predicted', linewidth=3)
-plt.plot(inv_y, c='b', label='Real', linewidth=3)
-plt.ylabel('Price change %')
+plt.plot(inv_y, c='blue', label='Real', linewidth=1)
+plt.plot(inv_pred, c='orange', label='Predicted', linewidth=1)
+plt.ylabel('Price')
 plt.xlabel('Test set entries')
 plt.legend()
+plt.savefig('reports/prediction_'+ timeframe +'.png')
 plt.show()

@@ -4,19 +4,19 @@ import matplotlib.dates as mdates
 import numpy as np
 import os
 
-timeframe = '15min' # todo: make timeframe global variable
+timeframe = '60min' # todo: make timeframe global variable
 
 input_filename = 'data/processed/tweets_prices_'+ timeframe +'.csv'
 df = pd.read_csv(input_filename, index_col=0)
 df.index = pd.DatetimeIndex(df.index)
 # Selected period of time
-start_date = '28/05/2018 10:00:00'
-end_date = '28/05/2018 15:00:00'
+start_date = '15/05/2018 10:00:00'
+end_date = '16/05/2018 10:00:00'
 df = df.loc[(df.index > start_date) & (df.index <= end_date)]
 
 # Scatter feature relation to target label
 features = ['followers_positive', 'compound_sum', 'tweet_count']
-target = 'price_change'
+target = 'close'
 
 for feature in features:
   plt.scatter(x=df[feature], y=df[target], alpha=0.4)
