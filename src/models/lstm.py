@@ -57,9 +57,11 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	return agg
 
 # Load dataset
-input_filename = 'data/processed/tweets_prices_15min.csv'
-df = pd.read_csv(input_filename, usecols=[2, 3, 5, 6, 9, 13, 14, 18, 19])
+input_filename = 'data/processed/tweets_prices_60min.csv'
+df = pd.read_csv(input_filename, usecols=[2, 3, 5, 6, 9, 13, 18, 19])
 print('Data has been loaded\n')
+
+# Move target values to last column
 df['close_price'] = df['close']
 df.drop(['close'], axis=1, inplace=True)
 print(df.head())
@@ -70,13 +72,13 @@ values = values.astype('float32')
 scaler = MinMaxScaler(feature_range=(0, 1))
 scaled = scaler.fit_transform(values)
 steps = 3
-n_features = 9
+n_features = 8
 n_observ = steps * n_features
 reframed = series_to_supervised(scaled, steps, 1)
-# reframed.drop(reframed.columns[[8, 9, 10, 11, 12, 13, 14]], axis=1, inplace=True)
 
 # Split into test and train, and input and output
 values = reframed.values
+print(pd.DataFrame(reframed).head())
 X, Y = values[:, :n_observ], values[:, -1]
 x_shape, y_shape = X.shape
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.3, shuffle=False)
@@ -84,7 +86,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.3, shuffle
 # reshape input to be 3D [samples, timesteps, features]
 X_train = X_train.reshape((X_train.shape[0], steps, n_features))
 X_test = X_test.reshape((X_test.shape[0], steps, n_features))
-print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
 
 # define base model
 def baseline_model():
@@ -125,8 +126,8 @@ inv_y = inv_y[:, -1]
 # calculate RMSE
 rmse = sqrt(mean_squared_error(inv_y, inv_pred))
 print('Test RMSE: %.3f' % rmse)
-plt.plot(inv_y, c='blue', label='Real', linewidth=1)
-plt.plot(inv_pred, c='orange', label='Predicted', linewidth=1)
+plt.plot(inv_y, c='blue', label='Real', linewidth=2)
+plt.plot(inv_pred, c='orange', label='Predicted', linewidth=2)
 plt.ylabel('Price')
 plt.xlabel('Test set entries')
 plt.legend()

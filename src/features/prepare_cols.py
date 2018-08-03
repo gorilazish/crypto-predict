@@ -3,8 +3,8 @@ import regex as re
 import os
 import math
 
-input_filename = "data/interim/tweets_clean.csv"
-output_filename = "data/interim/tweets_expanded.csv"
+input_filename = "data/interim/live_tweets_clean.csv"
+output_filename = "data/interim/live_tweets_expanded.csv"
 chunksize = 100000
 counter = 0
 total_rows = sum(1 for row in open(input_filename, 'r'))

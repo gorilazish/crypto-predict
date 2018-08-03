@@ -3,9 +3,11 @@ import re
 import os
 import math
 from vaderSentiment import vaderSentiment
+import csv
 
-input_filename = 'data/raw/tweets.csv'
-output_filename = 'data/interim/tweets_clean.csv'
+
+input_filename = 'data/raw/live_tweets.csv'
+output_filename = 'data/interim/live_tweets_clean.csv'
 columns = ['datetime','tweet','followers_count', 'compound', 'positive', 'neutral', 'negative']
 
 counter = 0
@@ -66,11 +68,24 @@ def process(data):
         tweets.append(clean_tweet_text(str(t)))
     data.drop(['tweet'], axis = 1, inplace = True)
     data['tweet'] = tweets
-    data['datetime'] = data['date'] + ' ' + data['time']
+    # data['datetime'] = data['date'] + ' ' + data['time']
     return data
 
+tweets = []
+with open(input_filename) as csv_file:
+    reader = csv.reader(csv_file)
+    for row in reader:
+        tweets.append(row)
 
-for chunk in pd.read_csv(input_filename, engine='python', chunksize=chunksize, encoding='utf-8-sig'):
-    data = process(chunk)
-    data = sentiment(data)
-    save(data)
+df = pd.DataFrame(tweets)
+df.columns = df.iloc[0]
+df = df[1:]
+
+data = process(df)
+data = sentiment(data)
+save(data)
+
+# for chunk in pd.read_csv(input_filename, engine='python', chunksize=chunksize, encoding='utf-8-sig'):
+#     data = process(chunk)
+#     data = sentiment(data)
+#     save(data)

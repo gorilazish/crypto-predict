@@ -12,27 +12,27 @@ from sklearn import metrics
 
 
 # Load dataset
-# data_filename = 'assets/60min_final.csv'
-data_filename = 'assets/15min_prices_tweets_april.csv'
-print('Loading prep file: ', data_filename)
-df = pd.read_csv(data_filename)
+input_file = 'data/processed/tweets_prices_60min.csv'
+print('Loading prep file: ', input_file)
+df = pd.read_csv(input_file)
 print('File has been loaded \n')
 
-shift = 4
+shift = 1
 # Split dataset into X and Y
-X = df.loc[:,'followers':'standard_deviation']
-print(X.head())
+features = ['followers_compound', 'followers_positive', 'followers_negative', 'compound_mean', 'positive_sum', 'negative_sum', 'tweet_count', 'volume']
+# features = ['open']
+X = df[features]
 X = preprocessing.scale(X)
 X_forecast = X[-shift:]
 X = X[:-shift]
-Y = df['price_change'].shift(-shift)[:-shift]
+Y = df['close'].shift(-shift)[:-shift]
 x_shape, y_shape = X.shape
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=False)
 
 reg = LinearRegression()
 reg.fit(X_train, y_train)
 y_pred = reg.predict(X_test)
-y_pred = y_pred * 2 # for some reason predicted values are in much smaller scale
+# y_pred = y_pred * 2 # for some reason predicted values are in much smaller scale
 
 # The coefficients
 print('Coefficients: \n', reg.coef_)

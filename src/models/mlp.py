@@ -16,22 +16,20 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
-# Create the outputs folder - save any outputs you want managed by AzureML here
-os.makedirs('./outputs', exist_ok=True)
 
 # Load dataset
-# data_filename = 'assets/60min_final.csv'
-data_filename = 'assets/15min_prices_tweets_april.csv'
-print('Loading prep file: ', data_filename)
-df = pd.read_csv(data_filename)
+input_file = 'data/processed/tweets_prices_60min.csv'
+print('Loading prep file: ', input_file)
+df = pd.read_csv(input_file)
 print('File has been loaded \n')
 
 shift = 4
 # Split dataset into X and Y
-X = df.loc[:,'followers':'standard_deviation']
+features = ['followers_compound', 'followers_positive', 'followers_negative', 'compound_mean', 'positive_sum', 'negative_sum', 'tweet_count', 'volume']
+X = df[features]
 X_forecast = X[-shift:]
 X = X[:-shift]
-Y = df['price_change'].shift(-shift)[:-shift]
+Y = df['close'].shift(-shift)[:-shift]
 x_shape, y_shape = X.shape
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle=False)
 print('Training data length - ', len(X_train))
@@ -51,7 +49,7 @@ def baseline_model():
 	return model
 
 seed = 2
-epochs = 1000
+epochs = 10000
 batch_size = 128
 np.random.seed(seed)
 
@@ -59,7 +57,7 @@ estimators = []
 estimators.append(('standardize', StandardScaler()))
 estimators.append(('mlp', KerasRegressor(build_fn=baseline_model, epochs=epochs, batch_size=batch_size, verbose=1)))
 pipeline = Pipeline(estimators)
-pipeline.fit(X_train, y_train)
+history = pipeline.fit(X_train, y_train)
 
 y_pred = pipeline.predict(X_test)
 # kfold = KFold(n_splits=2, random_state=seed)
@@ -76,7 +74,7 @@ y_pred = y_pred.shift(shift)[shift:]
 y_pred_data = df.loc[y_pred.index[0] : y_pred.index[-1]]
 y_pred_data.index = pd.DatetimeIndex(y_pred_data['datetime'])
 
-plt.plot(y_pred_data.index, y_pred_data['price_change'], color='blue', linewidth=3, label='Real price change')
+plt.plot(y_pred_data.index, y_pred_data['close'], color='blue', linewidth=3, label='Real price change')
 plt.plot(y_pred_data.index, y_pred, color='orange', linewidth=3, label='Predicted price change')
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m %H:%M'))
 plt.xlabel('Date')
